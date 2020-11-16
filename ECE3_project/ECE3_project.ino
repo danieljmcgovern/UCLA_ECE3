@@ -1,6 +1,7 @@
 
-
 #include <ECE3.h>
+
+//TODO add reset switch
 
 const int left_nslp_pin=31; // nslp ==> awake & ready for PWM
 const int left_dir_pin=29;
@@ -17,7 +18,7 @@ uint16_t SVraw[8];
 float weighted_sum = 0;
 float weight_8421[8] = {-8.0, -4.0, -2.0, -1.0, 1.0, 2.0, 4.0, 8.0}; 
 
-//these values are from trial3 fusion 11-14-20
+//these values are from trial3 fusion 11-14-20                                      // TODO add sensor calibration... using bumper swithc
 float SVmin[8] = {563.2, 586.0, 654.2, 496.0, 585.2, 586.0, 585.8, 677.2};            //min values from the sensor calibration test, {SV1, SV2, ... SV8}
 float SVmax[8] = {1936.8, 1914.0,  1843.8, 1374.4, 1491.2, 1886.6, 1606.6, 1822.8};
 float SVnorm[8];  //SVnorm = (SVraw - SVmin)*(1000/SVmax)
@@ -76,6 +77,7 @@ void loop()
   derivative = error - error_prev;
 
 //BIG CHANGE for sketch_nov15c: if(error<0) change leftSpd
+/*
   if(error>0){
     leftSpd = constSpd;
     rightSpd = constSpd + error*kp + derivative*kd;
@@ -83,9 +85,10 @@ void loop()
   if(error<0){
     rightSpd = constSpd;
     leftSpd = constSpd + error*(-kp) + derivative*(-kd);
-  }
-  // leftSpd = constleft - kp*fusion
-  //  rightspd = constrigth + kp*fusion
+  }*/
+  //above commented out code simplified/modified to below. this allows the speed on both wheels to be adjusted, previously one wheel was at constant speed while the other was adjusted.
+  leftSpd = constSpd - kp*error - derivative*kd;
+  rightSpd = constSpd + kp*error + derivative*kd;
 
   
 

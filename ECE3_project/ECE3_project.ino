@@ -1,10 +1,4 @@
-/*
- * sketch_nov15c
- * picking up from sketch_nov15b
- * GOAL: to mirror the Kp and Kd steps so that when the car is on the left of the track, the left wheel's speed will be adjusted (the right will be constant... for now)
- * 
- * GIT: committing this to git as initial. previous versions on local, will try to incorporate those into git later
- */
+
 
 #include <ECE3.h>
 

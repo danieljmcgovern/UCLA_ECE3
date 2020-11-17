@@ -84,15 +84,6 @@ void loop()
 
   leftSpd = constSpd - kp*error - derivative*kd;
   rightSpd = constSpd + kp*error + derivative*kd;  
-
-  //printing the output of the PD controller to the serial monitor to validate results.
-  /*
-  Serial.print("error: ");   Serial.println(error); 
-  Serial.print("E*kp: ");   Serial.println(error*kp);
-  Serial.print("D*kd: ");   Serial.println(derivative*kd);
-  Serial.print("leftSpd: "); Serial.println(leftSpd);
-  Serial.print("rightSpd: "); Serial.println(rightSpd);
-  Serial.println();*/
  
   error_prev = error;
   
@@ -100,33 +91,26 @@ void loop()
   analogWrite(right_pwm_pin,rightSpd);
 
   //code to execute 180 on reaching 1st black strip
-  raw_sum = 0;
+  raw_sum = 0;  
   for(int i = 0; i < 8; i++){
     raw_sum += SVraw[i];
   }
-  if((raw_sum / 8)> 2000 && count ==0){//if the pins mostly detect black, begin to donut
-    analogWrite(left_pwm_pin,0);       //pause before executing donut
-    analogWrite(right_pwm_pin,0);
-    delay(200);
-    digitalWrite(right_dir_pin, HIGH);  //reverse direction of right motor
+   if((raw_sum / 8)> 2000 && (count == 0)){
+    digitalWrite(right_dir_pin, HIGH);      //reverse direction of right motor
     analogWrite(left_pwm_pin,30);
-    analogWrite(right_pwm_pin,30);
-    delay(2000);                        //execute turn for duration of delay
-    analogWrite(left_pwm_pin,0);       //pause after 180 is executed
-    analogWrite(right_pwm_pin,0);
-    delay(100);
-    digitalWrite(right_dir_pin, LOW);     //reset direction of right motor to go forward
-    analogWrite(left_pwm_pin,30);       //go forward to get away from the black strip
-    analogWrite(right_pwm_pin,30);
-    delay(200);
+    analogWrite(right_pwm_pin,30);          //execute turn for duration of delay
+    delay(2100);
+    digitalWrite(right_dir_pin, LOW);
+    raw_sum = 0;                              //reset raw_sum so next if statment doesn't immediately execute
     count++;
   }
- //code to execute stop on reaching 2nd black strip
-  /*if((raw_sum / 8)> 2000 && count ==1){   //if seeing the black strip a second time... car is at end of track
-    analogWrite(left_pwm_pin,0);       //stop the car
-    analogWrite(right_pwm_pin,0);
+  //code to detect the 2nd strip, end of track
+  if((raw_sum / 8)> 2000 && (count == 1)){
+    analogWrite(left_pwm_pin, 0);           //stop the car
+    analogWrite(right_pwm_pin, 0);
     delay(10000);
-  }*/
+  }
+  
     
 }
 

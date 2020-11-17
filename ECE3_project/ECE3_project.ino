@@ -23,6 +23,8 @@ float SVmin[8] = {563.2, 586.0, 654.2, 496.0, 585.2, 586.0, 585.8, 677.2};      
 float SVmax[8] = {1936.8, 1914.0,  1843.8, 1374.4, 1491.2, 1886.6, 1606.6, 1822.8};
 float SVnorm[8];  //SVnorm = (SVraw - SVmin)*(1000/SVmax)
 
+int pause = 0;
+
 void setup()
 {
   ECE3_Init();
@@ -42,7 +44,13 @@ void setup()
   digitalWrite(right_dir_pin,LOW);
   digitalWrite(right_nslp_pin,HIGH);
 
-  pinMode(LED_RF, OUTPUT);
+  pinMode(LED_RF, OUTPUT); 
+
+  pinMode(PUSH1, INPUT_PULLUP);
+  attachInterrupt(PUSH1, calibrate_min, FALLING);
+  pinMode(PUSH2, INPUT_PULLUP);
+  attachInterrupt(PUSH2, calibrate_max, FALLING); 
+  
 
   delay(2000);
 }
@@ -57,10 +65,9 @@ float derivative = 0;
 
 float kp = 0.10;    //constant of proportionality
 float kd = 0.10;    //constant of differentiation
-//kp
 
 void loop()
-{
+{  
   weighted_sum = 0; //this value must be zeroed out becuase it is only ever added to in the for loop, ie it's value is never reset (as is error's value)
   
   // read raw sensor values
@@ -76,17 +83,6 @@ void loop()
 
   derivative = error - error_prev;
 
-//BIG CHANGE for sketch_nov15c: if(error<0) change leftSpd
-/*
-  if(error>0){
-    leftSpd = constSpd;
-    rightSpd = constSpd + error*kp + derivative*kd;
-  }
-  if(error<0){
-    rightSpd = constSpd;
-    leftSpd = constSpd + error*(-kp) + derivative*(-kd);
-  }*/
-  //above commented out code simplified/modified to below. this allows the speed on both wheels to be adjusted, previously one wheel was at constant speed while the other was adjusted.
   leftSpd = constSpd - kp*error - derivative*kd;
   rightSpd = constSpd + kp*error + derivative*kd;
 
@@ -102,8 +98,42 @@ void loop()
   Serial.println();*/
  
   error_prev = error;
-  delay(50);    //TODO: how long of a delay is necessary? is it necessary? how rapidly do sensor values come in?
+  //delay(50);    //TODO: how long of a delay is necessary? is it necessary? how rapidly do sensor values come in?
+  //got rid of this delay and the car went from only following straight path and failing on curved, to being able to follow curved path pretty well.
   
-  analogWrite(left_pwm_pin,leftSpd);
-  analogWrite(right_pwm_pin,rightSpd);
+ // analogWrite(left_pwm_pin,leftSpd);
+ // analogWrite(right_pwm_pin,rightSpd);
+}
+
+//11/16 7:30pm got the push buttons working. wasted a bunch of time trying to use bumper switches to do this.
+//11/17 7:30am added sensor calibrations. calibrate_min can only run once, not sure why. cal_max can run multiple times no prob.
+void calibrate_min() {
+  ECE3_read_IR(SVraw);              //read raw sensor data
+  for (int i = 0; i<8; i++){       //zero out SVmin array
+    SVmin[i] = 0;
+  }
+  for (int i = 0; i<10; i++){     //taking 10 readings per sensor
+    for (int i = 0; i<8; i++)     //take a reading from each sensor
+      SVmin[i] += (SVraw[i]/10.0);//ten values going in, so divide each value by 10 for average
+  }
+  for (int i = 0; i<8; i++){
+    Serial.print(SVmin[i]); Serial.print("\t");
+  }
+  Serial.println();
+  delay(2000);
+}
+void calibrate_max() {
+  ECE3_read_IR(SVraw);              //read raw sensor data
+  for (int i = 0; i<8; i++){       //zero out SVmax array
+    SVmax[i] = 0;
+  }
+  for (int i = 0; i<10; i++){     //taking 10 readings per sensor
+    for (int i = 0; i<8; i++)     //take a reading from each sensor
+      SVmax[i] += (SVraw[i]/10.0);//ten values going in, so divide each value by 10 for average
+  }
+  for (int i = 0; i<8; i++){
+    Serial.print(SVmax[i]); Serial.print("\t");
+  }
+  Serial.println();
+  delay(2000);
 }

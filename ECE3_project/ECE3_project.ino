@@ -54,17 +54,17 @@ void setup()
 
 int leftSpd = 0;
 int rightSpd = 0;
-int constSpd = 20;  //starting motor speed that PD controller will modify
+int constSpd = 60;  //starting motor speed that PD controller will modify
 
 float error = 0;
 float error_prev = 0;
 float derivative = 0;
 
-float kp = 0.10;    //constant of proportionality
-float kd = 0.10;    //constant of differentiation
+float kp = 0.12;    //constant of proportionality
+float kd = 0.08   ;    //constant of differentiation
 
 int count = 0;
-int raw_sum = 0;
+int raw_sum = 0;  
 
 void loop()
 {  
@@ -78,7 +78,7 @@ void loop()
   for (int i = 0; i<8; i++){    //compute weighted sum on normalized value
     weighted_sum += SVnorm[i]*weight_8421[i];
   }
-  error = weighted_sum/8.0;
+  error = weighted_sum/4.0;
 
   derivative = error - error_prev;
 
@@ -97,9 +97,9 @@ void loop()
   }
    if((raw_sum / 8)> 2000 && (count == 0)){
     digitalWrite(right_dir_pin, HIGH);      //reverse direction of right motor
-    analogWrite(left_pwm_pin,30);
-    analogWrite(right_pwm_pin,30);          //execute turn for duration of delay
-    delay(2100);
+    analogWrite(left_pwm_pin,120);
+    analogWrite(right_pwm_pin,120);          //execute turn for duration of delay
+    delay(400);
     digitalWrite(right_dir_pin, LOW);
     raw_sum = 0;                              //reset raw_sum so next if statment doesn't immediately execute
     count++;
@@ -116,6 +116,8 @@ void loop()
 
 //TODO FIX: calibrate_min can only run once, not sure why. calibrate_max can run multiple times
 void calibrate_min() {
+  analogWrite(left_pwm_pin, 0);           //stop the car
+    analogWrite(right_pwm_pin, 0);
   ECE3_read_IR(SVraw);              //read raw sensor data
   for (int i = 0; i<8; i++){       //zero out SVmin array
     SVmin[i] = 0;
@@ -128,9 +130,11 @@ void calibrate_min() {
     Serial.print(SVmin[i]); Serial.print("\t");
   }
   Serial.println();
-  delay(2000);
+  delay(5000);
 }
 void calibrate_max() {
+  analogWrite(left_pwm_pin, 0);           //stop the car
+    analogWrite(right_pwm_pin, 0);
   ECE3_read_IR(SVraw);              //read raw sensor data
   for (int i = 0; i<8; i++){       //zero out SVmax array
     SVmax[i] = 0;
@@ -146,5 +150,7 @@ void calibrate_max() {
     Serial.print(SVmax[i]); Serial.print("\t");
   }
   Serial.println();
-  delay(2000);
+  leftSpd = 0;
+  rightSpd = 0;
+  delay(5000);
 }

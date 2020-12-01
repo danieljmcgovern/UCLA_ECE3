@@ -17,9 +17,21 @@ float weighted_sum = 0;
 float weight_8421[8] = {-8.0, -4.0, -2.0, -1.0, 1.0, 2.0, 4.0, 8.0}; 
 
 //these values are from trial3 fusion 11-14-20                                      
-float SVmin[8] = {563.2, 586.0, 654.2, 496.0, 585.2, 586.0, 585.8, 677.2};            //min values from the sensor calibration test, {SV1, SV2, ... SV8}
-float SVmax[8] = {1936.8, 1914.0,  1843.8, 1374.4, 1491.2, 1886.6, 1606.6, 1822.8};
+//float SVmin[8] = {563.2, 586.0, 654.2, 496.0, 585.2, 586.0, 585.8, 677.2};            //min values from the sensor calibration test, {SV1, SV2, ... SV8}
+//float SVmax[8] = {1936.8, 1914.0,  1843.8, 1374.4, 1491.2, 1886.6, 1606.6, 1822.8};
+
+//these values are from "sensor fusion with sharpie strip"                                     
+//float SVmin[8] = {513.2,  562.6, 630.2, 450.6, 539.8, 553.6, 562.6, 653.4};        
+//float SVmax[8] = {1444,  1069.8,  1422.4,  948, 1185.6,  1101.8,  1185.4,  1846.6};
+
+//these values are from on the fly calibration using button code   , 11/29                                  
+float SVmax[8] = {1977,  2205,  2500,  1841,  1728,  2275,  2114,  2500  };    
+float SVmin[8] = {653,  698, 768, 630, 698, 675, 698, 792 };
+
+
 float SVnorm[8];  //SVnorm = (SVraw - SVmin)*(1000/SVmax)
+
+
 
 int pause = 0;
 
@@ -54,14 +66,14 @@ void setup()
 
 int leftSpd = 0;
 int rightSpd = 0;
-int constSpd = 60;  //starting motor speed that PD controller will modify
+int constSpd = 50;  //starting motor speed that PD controller will modify
 
 float error = 0;
 float error_prev = 0;
 float derivative = 0;
 
-float kp = 0.12;    //constant of proportionality
-float kd = 0.08   ;    //constant of differentiation
+float kp = 0.20 ;    //constant of proportionality
+float kd = 0.10;    //constant of differentiation  
 
 int count = 0;
 int raw_sum = 0;  
@@ -95,7 +107,7 @@ void loop()
   for(int i = 0; i < 8; i++){
     raw_sum += SVraw[i];
   }
-   if((raw_sum / 8)> 2000 && (count == 0)){
+   if((raw_sum / 8)> 1800 && (count == 0)){
     digitalWrite(right_dir_pin, HIGH);      //reverse direction of right motor
     analogWrite(left_pwm_pin,120);
     analogWrite(right_pwm_pin,120);          //execute turn for duration of delay
